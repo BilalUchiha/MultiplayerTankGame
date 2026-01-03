@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tank Battle - Map Boundaries</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%);
+            font-family: 'Orbitron', 'Segoe UI', sans-serif;
+        }
+
+        #menu {
+            position: absolute; z-index: 100; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); text-align: center; color: white;
+            background: linear-gradient(145deg, rgba(26,26,46,0.95), rgba(16,16,30,0.95));
+            padding: 60px 80px;
+            border: 3px solid #00ff88;
+            border-radius: 20px;
+            box-shadow: 0 0 40px rgba(0,255,136,0.4), inset 0 0 20px rgba(0,255,136,0.1);
+            animation: menuGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes menuGlow {
+            from { box-shadow: 0 0 40px rgba(0,255,136,0.4), inset 0 0 20px rgba(0,255,136,0.1); }
+            to { box-shadow: 0 0 60px rgba(0,255,136,0.6), inset 0 0 30px rgba(0,255,136,0.2); }
+        }
+
+        #menu h1 {
+            font-size: 56px;
+            font-weight: 900;
+            margin: 0 0 30px 0;
+            text-transform: uppercase;
+            letter-spacing: 8px;
+            background: linear-gradient(90deg, #00ff88, #00ccff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(0,255,136,0.5);
+            animation: titlePulse 3s ease-in-out infinite;
+        }
+
+        @keyframes titlePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        #roomInput {
+            width: 300px;
+            padding: 18px 25px;
+            font-size: 20px;
+            font-family: 'Orbitron', monospace;
+            background: rgba(0,0,0,0.6);
+            border: 2px solid #00ff88;
+            border-radius: 10px;
+            color: #00ff88;
+            text-align: center;
+            margin: 20px 0;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        #roomInput::placeholder {
+            color: rgba(0,255,136,0.5);
+        }
+
+        #roomInput:focus {
+            border-color: #00ccff;
+            box-shadow: 0 0 20px rgba(0,255,136,0.6);
+            transform: scale(1.05);
+        }
+
+        button {
+            padding: 18px 45px;
+            font-size: 22px;
+            font-weight: 700;
+            font-family: 'Orbitron', sans-serif;
+            cursor: pointer;
+            background: linear-gradient(135deg, #00ff88, #00cc66);
+            color: #0a0a0a;
+            border: none;
+            border-radius: 10px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0,255,136,0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0,255,136,0.6);
+            background: linear-gradient(135deg, #00ffaa, #00dd77);
+        }
+
+        button:active {
+            transform: translateY(-1px);
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        #gameOverScreen {
+            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 200; flex-direction: column;
+            justify-content: center; align-items: center; color: white;
+        }
+
+        .scoreboard {
+            position: absolute; top: 20px; width: 100%; display: none;
+            justify-content: space-between; padding: 0 40px; box-sizing: border-box;
+            font-size: 24px; font-weight: bold; color: white; z-index: 10; pointer-events: none;
+        }
+
+        .player-stats {
+            background: rgba(0,0,0,0.7);
+            padding: 15px 25px;
+            border-radius: 10px;
+            border: 2px solid;
+            min-width: 250px;
+        }
+
+        .player-stats.p1 { border-color: #ff4d4d; }
+        .player-stats.p2 { border-color: #4d94ff; }
+
+        #powerupIndicator {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            padding: 20px 40px;
+            border-radius: 15px;
+            border: 3px solid #ffaa00;
+            color: #ffaa00;
+            font-size: 24px;
+            font-weight: bold;
+            display: none;
+            z-index: 15;
+            box-shadow: 0 0 30px rgba(255,170,0,0.6);
+            animation: powerupPulse 0.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes powerupPulse {
+            from { transform: translateX(-50%) scale(1); }
+            to { transform: translateX(-50%) scale(1.1); }
+        }
+
+        #powerupActive {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255,170,0,0.2);
+            padding: 30px 60px;
+            border-radius: 20px;
+            border: 4px solid #ffaa00;
+            color: #ffaa00;
+            font-size: 48px;
+            font-weight: 900;
+            display: none;
+            z-index: 20;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            box-shadow: 0 0 50px rgba(255,170,0,0.8);
+            animation: activeGlow 0.3s ease-in-out infinite alternate;
+        }
+
+        @keyframes activeGlow {
+            from { box-shadow: 0 0 50px rgba(255,170,0,0.8); }
+            to { box-shadow: 0 0 80px rgba(255,170,0,1); }
+        }
+
+        canvas { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="menu">
+        <h1>⚔ TANK BATTLE ⚔</h1>
+        <p style="color: #00ff88; font-size: 18px; margin: 10px 0;">Enter Battle Arena</p>
+        <input type="text" id="roomInput" placeholder="ENTER ROOM CODE" maxlength="20">
+        <br><button onclick="join()">🎮 JOIN BATTLE 🎮</button>
+        <p style="color: rgba(255,255,255,0.5); font-size: 14px; margin-top: 30px;">
+            Press SHIFT to activate power-up when available!
+        </p>
+    </div>
+
+    <div id="gameOverScreen">
+        <h1 id="statusText">VICTORY!</h1>
+        <button onclick="location.reload()">PLAY AGAIN</button>
+    </div>
+
+    <div class="scoreboard" id="ui">
+        <div class="player-stats p1">
+            <div style="color: #ff4d4d; font-size: 28px;">PLAYER 1</div>
+            <div>HP: <span id="p1HP">100</span></div>
+            <div>SCORE: <span id="p1Score">0</span></div>
+        </div>
+        <div class="player-stats p2">
+            <div style="color: #4d94ff; font-size: 28px;">PLAYER 2</div>
+            <div>HP: <span id="p2HP">100</span></div>
+            <div>SCORE: <span id="p2Score">0</span></div>
+        </div>
+    </div>
+
+    <div id="powerupIndicator">
+        ⚡ POWER-UP READY! Press SHIFT ⚡
+    </div>
+
+    <div id="powerupActive">
+        🔥 POWER-UP ACTIVE! 🔥
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        const socket = io();
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        const imgP1 = new Image(); imgP1.src = 'RedTank.png';
+        const imgP2 = new Image(); imgP2.src = 'BlueTank.png';
+        const imgBullet = new Image(); imgBullet.src = 'Bullet.png';
+        const imgRocket = new Image(); imgRocket.src = 'Rocket.png';
+        const imgObstacle = new Image(); imgObstacle.src = 'Obstacle.png';
+        const imgShield = new Image(); imgShield.src = 'Sheild.png';
+        const imgHealth = new Image(); imgHealth.src = 'Health.png';
+        const imgTriple = new Image(); imgTriple.src = 'TripleBullet.png';
+
+        // Sound Effects using Web Audio API
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+
+        // Sound generator functions
+        function playBulletSound() {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            oscillator.frequency.value = 800;
+            oscillator.type = 'square';
+
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.1);
+        }
+
+        function playRocketSound() {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            oscillator.frequency.setValueAtTime(200, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+            oscillator.type = 'sawtooth';
+
+            gainNode.gain.setValueAtTime(0.4, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.3);
+        }
+
+        function playHitSound() {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            const filter = audioCtx.createBiquadFilter();
+
+            oscillator.connect(filter);
+            filter.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            oscillator.frequency.value = 150;
+            oscillator.type = 'triangle';
+            filter.type = 'lowpass';
+            filter.frequency.value = 300;
+
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.2);
+        }
+
+        function playExplosionSound() {
+            const bufferSize = audioCtx.sampleRate * 0.5;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.1));
+            }
+
+            const noise = audioCtx.createBufferSource();
+            const gainNode = audioCtx.createGain();
+            const filter = audioCtx.createBiquadFilter();
+
+            noise.buffer = buffer;
+            noise.connect(filter);
+            filter.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(1000, audioCtx.currentTime);
+            filter.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.5);
+
+            gainNode.gain.setValueAtTime(0.6, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+
+            noise.start(audioCtx.currentTime);
+            noise.stop(audioCtx.currentTime + 0.5);
+        }
+
+        function playPowerUpSound() {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            oscillator.frequency.setValueAtTime(400, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.3);
+            oscillator.type = 'sine';
+
+            gainNode.gain.setValueAtTime(0.4, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.3);
+        }
+
+        function playItemPickupSound() {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            oscillator.frequency.setValueAtTime(600, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.15);
+            oscillator.type = 'sine';
+
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.15);
+        }
+
+        // --- MAP CONFIG ---
+        const WORLD_WIDTH = 2000;
+        const WORLD_HEIGHT = 1200;
+
+        let mySide, myRoom, gameStarted = false, isGameOver = false;
+        let mouseX = 0, mouseY = 0, currentZoom = 1, shake = 0;
+        let p1 = { x: 200, y: 600, angle: 0, hp: 100, shield: 0, bullets: [], rocket: false, triple: false, score: 0, powerupReady: false, powerupActive: false, powerupTimer: 0 };
+        let p2 = { x: 1800, y: 600, angle: Math.PI, hp: 100, shield: 0, bullets: [], rocket: false, triple: false, score: 0, powerupReady: false, powerupActive: false, powerupTimer: 0 };
+        let obstacles = [], particles = [], items = [];
+        const keys = {};
+        const POWERUP_SCORE_THRESHOLD = 50; // Points needed to unlock power-up
+        const POWERUP_DURATION = 3000; // 3 seconds in milliseconds
+        let lastFireTime = 0;
+
+        // Particle system for visual effects
+        function createExplosion(x, y, color = '#ff6600', count = 20) {
+            for(let i = 0; i < count; i++) {
+                const angle = (Math.PI * 2 * i) / count;
+                const speed = 2 + Math.random() * 4;
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    life: 1,
+                    decay: 0.02 + Math.random() * 0.02,
+                    size: 3 + Math.random() * 4,
+                    color: color
+                });
+            }
+        }
+
+        function createHitEffect(x, y, color = '#ffff00') {
+            for(let i = 0; i < 10; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 1 + Math.random() * 3;
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    life: 1,
+                    decay: 0.03 + Math.random() * 0.03,
+                    size: 2 + Math.random() * 3,
+                    color: color
+                });
+            }
+        }
+
+        function updateParticles() {
+            particles.forEach((p, i) => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= p.decay;
+                p.vx *= 0.98;
+                p.vy *= 0.98;
+
+                if(p.life <= 0) particles.splice(i, 1);
+            });
+        }
+
+        function drawParticles() {
+            particles.forEach(p => {
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+        }
+
+        window.addEventListener('keydown', e => keys[e.code] = true);
+        window.addEventListener('keyup', e => keys[e.code] = false);
+        window.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
+        window.addEventListener('mousedown', () => {
+            // Resume audio context on first user interaction (browser requirement)
+            if(audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            if(gameStarted && !isGameOver) fire();
+        });
+
+        function join() {
+            const r = document.getElementById('roomInput').value;
+            if(r) {
+                // Resume audio context on user interaction
+                if(audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                socket.emit('joinRoom', r);
+            }
+        }
+
+        socket.on('init', data => {
+            mySide = data.side; myRoom = data.roomName; obstacles = data.map;
+            document.getElementById('menu').innerHTML = "<h2>Waiting for Player 2...</h2>";
+        });
+
+        socket.on('startGame', () => {
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('ui').style.display = 'flex';
+            canvas.style.display = 'block';
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            gameStarted = true;
+            requestAnimationFrame(gameLoop);
+        });
+
+        function fire() {
+            let me = mySide === 'left' ? p1 : p2;
+
+            // Fire rate control - faster during power-up
+            const now = Date.now();
+            const fireDelay = me.powerupActive ? 100 : 300; // 100ms vs 300ms between shots
+            if (now - lastFireTime < fireDelay) return;
+            lastFireTime = now;
+
+            const bX = me.x + 30; const bY = me.y + 30;
+            const speed = me.powerupActive ? 24 : 16; // Faster bullets during power-up
+            let newBullets = [];
+
+            // Muzzle flash effect
+            const flashX = bX + Math.cos(me.angle) * 35;
+            const flashY = bY + Math.sin(me.angle) * 35;
+            createHitEffect(flashX, flashY, '#ffff00');
+
+            if(me.triple) {
+                for(let a of [-0.2, 0, 0.2]) {
+                    newBullets.push({ x: bX, y: bY, dx: Math.cos(me.angle+a)*speed, dy: Math.sin(me.angle+a)*speed, angle: me.angle+a, isRocket: false });
+                }
+                me.triple = false;
+                playBulletSound();
+            } else {
+                newBullets.push({ x: bX, y: bY, dx: Math.cos(me.angle)*speed, dy: Math.sin(me.angle)*speed, angle: me.angle, isRocket: me.rocket });
+                // Play appropriate sound
+                if(me.rocket) {
+                    playRocketSound();
+                } else {
+                    playBulletSound();
+                }
+                me.rocket = false;
+            }
+            me.bullets.push(...newBullets);
+            socket.emit('sync', { room: myRoom, action: 'fire', bullets: newBullets });
+        }
+
+        function gameLoop() {
+            if(!gameStarted || isGameOver) return;
+            ctx.clearRect(0,0, canvas.width, canvas.height);
+
+            let me = (mySide === 'left') ? p1 : p2;
+            let opp = (mySide === 'left') ? p2 : p1;
+
+            // Power-up activation with Shift key
+            if(keys['ShiftLeft'] || keys['ShiftRight']) {
+                if(me.powerupReady && !me.powerupActive) {
+                    me.powerupActive = true;
+                    me.powerupReady = false;
+                    me.score = Math.max(0, me.score - POWERUP_SCORE_THRESHOLD); // Deduct score
+                    me.powerupTimer = Date.now() + POWERUP_DURATION;
+                    document.getElementById('powerupActive').style.display = 'block';
+                    document.getElementById('powerupIndicator').style.display = 'none';
+
+                    // Play power-up sound
+                    playPowerUpSound();
+
+                    // Create visual effect
+                    createExplosion(me.x + 30, me.y + 30, '#ffaa00', 30);
+
+                    // Auto-hide after duration
+                    setTimeout(() => {
+                        me.powerupActive = false;
+                        document.getElementById('powerupActive').style.display = 'none';
+                    }, POWERUP_DURATION);
+                }
+            }
+
+            // Check if power-up should be available
+            if(me.score >= POWERUP_SCORE_THRESHOLD && !me.powerupReady && !me.powerupActive) {
+                me.powerupReady = true;
+                document.getElementById('powerupIndicator').style.display = 'block';
+            }
+
+            // 1. Movement with Map Limits - faster during power-up
+            const moveSpeed = me.powerupActive ? 12 : 7;
+            if(keys['KeyW']) me.y -= moveSpeed;
+            if(keys['KeyS']) me.y += moveSpeed;
+            if(keys['KeyA']) me.x -= moveSpeed;
+            if(keys['KeyD']) me.x += moveSpeed;
+
+            // Constrain player to WORLD_WIDTH and WORLD_HEIGHT
+            me.x = Math.max(0, Math.min(me.x, WORLD_WIDTH - 60));
+            me.y = Math.max(0, Math.min(me.y, WORLD_HEIGHT - 60));
+
+            // 2. Rotation & Aiming
+            const worldMouseX = (mouseX - canvas.width/2) / currentZoom + (p1.x + p2.x + 60)/2;
+            const worldMouseY = (mouseY - canvas.height/2) / currentZoom + (p1.y + p2.y + 60)/2;
+            me.angle = Math.atan2(worldMouseY - (me.y + 30), worldMouseX - (me.x + 30));
+
+            socket.emit('sync', { room: myRoom, side: mySide, x: me.x, y: me.y, angle: me.angle, hp: me.hp, shield: me.shield, score: me.score, powerupActive: me.powerupActive });
+
+            // 3. Camera (Follows Midpoint but clamps to map)
+            const dist = Math.hypot(p1.x - p2.x, p1.y - p2.y);
+            currentZoom += (Math.max(0.5, Math.min(0.9, 1200 / (dist + 600))) - currentZoom) * 0.05;
+            
+            ctx.save();
+            ctx.translate(canvas.width/2, canvas.height/2);
+            ctx.scale(currentZoom, currentZoom);
+            ctx.translate(-(p1.x+p2.x+60)/2, -(p1.y+p2.y+60)/2);
+            if(shake > 0) { ctx.translate((Math.random()-0.5)*shake, (Math.random()-0.5)*shake); shake *= 0.9; }
+
+            // 4. Draw Map Background & Grid
+            ctx.fillStyle = "#1a1a1a";
+            ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+            ctx.strokeStyle = "rgba(255,255,255,0.05)";
+            for(let x=0; x<=WORLD_WIDTH; x+=100) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x, WORLD_HEIGHT); ctx.stroke(); }
+            for(let y=0; y<=WORLD_HEIGHT; y+=100) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(WORLD_WIDTH, y); ctx.stroke(); }
+            ctx.lineWidth = 5; ctx.strokeStyle = "#2ecc71"; ctx.strokeRect(0,0, WORLD_WIDTH, WORLD_HEIGHT);
+
+            // 5. Assets & Collisions
+            obstacles.forEach(o => { if(o.hp > 0) ctx.drawImage(imgObstacle, o.x, o.y, 70, 70); });
+
+            items.forEach((item, i) => {
+                let img = item.type === 'shield' ? imgShield : (item.type === 'rocket' ? imgRocket : (item.type === 'triple' ? imgTriple : imgHealth));
+                ctx.drawImage(img, item.x, item.y, 40, 40);
+                if(Math.hypot(me.x+30 - (item.x+20), me.y+30 - (item.y+20)) < 45) {
+                    if(item.type === 'shield') me.shield = 100;
+                    if(item.type === 'rocket') me.rocket = true;
+                    if(item.type === 'triple') me.triple = true;
+                    if(item.type === 'health') me.hp = Math.min(100, me.hp + 30);
+
+                    // Play pickup sound and create effect
+                    playItemPickupSound();
+                    createHitEffect(item.x + 20, item.y + 20, '#00ff88');
+
+                    socket.emit('sync', { room: myRoom, action: 'itemPickup', id: item.id });
+                    items.splice(i, 1);
+                }
+            });
+
+            [p1, p2].forEach(p => {
+                p.bullets.forEach((b, bi) => {
+                    b.x += b.dx; b.y += b.dy;
+                    ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(b.angle);
+                    ctx.drawImage(b.isRocket ? imgRocket : imgBullet, -15, -10, 30, 20); ctx.restore();
+
+                    let hit = false;
+                    obstacles.forEach(o => {
+                        if(!hit && o.hp > 0 && b.x > o.x && b.x < o.x + 70 && b.y > o.y && b.y < o.y + 70) {
+                            o.hp -= 1;
+                            hit = true;
+
+                            // Visual and audio feedback
+                            if(b.isRocket) {
+                                createExplosion(b.x, b.y, '#ff6600', 15);
+                                playExplosionSound();
+                            } else {
+                                createHitEffect(b.x, b.y, '#ffff00');
+                                playHitSound();
+                            }
+
+                            // Award points for destroying obstacle
+                            if(p === me) {
+                                me.score += 10; // 10 points per obstacle hit
+                            }
+
+                            // If obstacle destroyed, create bigger explosion
+                            if(o.hp <= 0) {
+                                createExplosion(o.x + 35, o.y + 35, '#ff4400', 25);
+                            }
+                        }
+                    });
+
+                    let target = (p === p1) ? p2 : p1;
+                    if(!hit && b.x > target.x && b.x < target.x + 60 && b.y > target.y && b.y < target.y + 60) {
+                        // Visual and audio feedback for player hit
+                        if(b.isRocket) {
+                            createExplosion(b.x, b.y, '#ff0000', 20);
+                            playExplosionSound();
+                        } else {
+                            createHitEffect(b.x, b.y, '#ff0000');
+                            playHitSound();
+                        }
+
+                        if(target === me) {
+                            let dmg = b.isRocket ? 35 : 12;
+                            if(me.shield > 0) me.shield -= dmg; else me.hp -= dmg;
+                            shake = 10;
+
+                            // Death explosion
+                            if(me.hp <= 0) {
+                                createExplosion(me.x + 30, me.y + 30, '#ff0000', 40);
+                                playExplosionSound();
+                                socket.emit('sync', { room: myRoom, action: 'death', winner: (mySide === 'left' ? 'right' : 'left') });
+                            }
+                        } else {
+                            // Award points for hitting opponent
+                            if(p === me) {
+                                me.score += 15; // 15 points per hit on opponent
+                            }
+                        }
+                        hit = true;
+                    }
+                    // Remove bullet if hit or out of WORLD bounds
+                    if(hit || b.x < 0 || b.x > WORLD_WIDTH || b.y < 0 || b.y > WORLD_HEIGHT) p.bullets.splice(bi, 1);
+                });
+            });
+
+            const drawT = (p, img) => {
+                if(p.hp <= 0) return;
+
+                // Power-up glow effect
+                if(p.powerupActive) {
+                    ctx.save();
+                    ctx.shadowColor = '#ffaa00';
+                    ctx.shadowBlur = 30;
+                    ctx.beginPath();
+                    ctx.arc(p.x + 30, p.y + 30, 40, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(255, 170, 0, 0.3)';
+                    ctx.fill();
+                    ctx.restore();
+                }
+
+                ctx.save(); ctx.translate(p.x + 30, p.y + 30); ctx.rotate(p.angle + Math.PI/2);
+                ctx.drawImage(img, -30, -30, 60, 60); ctx.restore();
+                ctx.fillStyle = "red"; ctx.fillRect(p.x, p.y-15, 60, 5);
+                ctx.fillStyle = "green"; ctx.fillRect(p.x, p.y-15, (p.hp/100)*60, 5);
+                if(p.shield > 0) { ctx.fillStyle = "#00bfff"; ctx.fillRect(p.x, p.y-22, (p.shield/100)*60, 4); }
+            };
+            drawT(p1, imgP1); drawT(p2, imgP2);
+
+            // Update and draw particles
+            updateParticles();
+            drawParticles();
+
+            ctx.restore();
+            document.getElementById('p1HP').innerText = Math.ceil(p1.hp);
+            document.getElementById('p2HP').innerText = Math.ceil(p2.hp);
+            document.getElementById('p1Score').innerText = p1.score;
+            document.getElementById('p2Score').innerText = p2.score;
+            requestAnimationFrame(gameLoop);
+        }
+
+        socket.on('opponentSync', data => {
+            if(data.action === 'fire') {
+                let p = mySide === 'left' ? p2 : p1;
+                p.bullets.push(...data.bullets);
+            } else if(data.action === 'death') {
+                isGameOver = true;
+                document.getElementById('gameOverScreen').style.display = 'flex';
+                document.getElementById('statusText').innerText = data.winner === mySide ? "VICTORY!" : "DEFEAT";
+            } else if(data.action === 'itemPickup') {
+                items = items.filter(i => i.id !== data.id);
+            } else {
+                let p = data.side === 'left' ? p1 : p2;
+                p.x = data.x; p.y = data.y; p.hp = data.hp; p.shield = data.shield; p.angle = data.angle;
+                if(data.score !== undefined) p.score = data.score;
+                if(data.powerupActive !== undefined) p.powerupActive = data.powerupActive;
+            }
+        });
+
+        socket.on('spawnItem', item => items.push(item));
+        socket.on('removeItem', id => items = items.filter(i => i.id !== id));
+    </script>
+</body>
+</html>
