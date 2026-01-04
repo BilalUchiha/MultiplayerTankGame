@@ -190,6 +190,126 @@
             to { box-shadow: 0 0 80px rgba(255,170,0,1); }
         }
 
+        #musicToggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.7);
+            border: 2px solid #00ff88;
+            color: #00ff88;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            z-index: 25;
+            display: none;
+            transition: all 0.3s ease;
+        }
+
+        #musicToggle:hover {
+            background: rgba(0,255,136,0.2);
+            transform: scale(1.05);
+        }
+
+        #classSelection {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 30;
+            flex-direction: column;
+        }
+
+        #classSelection h1 {
+            color: #00ff88;
+            font-size: 48px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px #00ff88;
+        }
+
+        .class-container {
+            display: flex;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .class-card {
+            background: rgba(30,30,30,0.9);
+            border: 3px solid #444;
+            border-radius: 15px;
+            padding: 30px;
+            width: 250px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .class-card:hover {
+            transform: translateY(-10px) scale(1.05);
+            border-color: #00ff88;
+            box-shadow: 0 10px 40px rgba(0,255,136,0.4);
+        }
+
+        .class-card.speed { border-color: #ffaa00; }
+        .class-card.speed:hover { border-color: #ffaa00; box-shadow: 0 10px 40px rgba(255,170,0,0.4); }
+
+        .class-card.tank { border-color: #4d94ff; }
+        .class-card.tank:hover { border-color: #4d94ff; box-shadow: 0 10px 40px rgba(77,148,255,0.4); }
+
+        .class-card.balanced { border-color: #00ff88; }
+        .class-card.balanced:hover { border-color: #00ff88; box-shadow: 0 10px 40px rgba(0,255,136,0.4); }
+
+        .class-card.sniper { border-color: #ff4d4d; }
+        .class-card.sniper:hover { border-color: #ff4d4d; box-shadow: 0 10px 40px rgba(255,77,77,0.4); }
+
+        .class-icon {
+            font-size: 64px;
+            margin-bottom: 15px;
+        }
+
+        .class-name {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .class-card.speed .class-name { color: #ffaa00; }
+        .class-card.tank .class-name { color: #4d94ff; }
+        .class-card.balanced .class-name { color: #00ff88; }
+        .class-card.sniper .class-name { color: #ff4d4d; }
+
+        .class-stats {
+            text-align: left;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #aaa;
+        }
+
+        .class-stats div {
+            margin: 8px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .stat-bar {
+            width: 100px;
+            height: 8px;
+            background: #333;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-left: 10px;
+        }
+
+        .stat-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00aa55);
+            transition: width 0.3s ease;
+        }
+
         canvas { display: none; }
     </style>
 </head>
@@ -231,6 +351,63 @@
         🔥 POWER-UP ACTIVE! 🔥
     </div>
 
+    <button id="musicToggle" onclick="toggleMusic()">🔊 Music ON</button>
+
+    <div id="classSelection">
+        <h1>⚔ CHOOSE YOUR TANK CLASS ⚔</h1>
+        <p style="color: #aaa; font-size: 18px; margin-bottom: 30px;">Select your combat specialization</p>
+
+        <div class="class-container">
+            <div class="class-card speed" onclick="selectClass('speed')">
+                <div class="class-icon">⚡</div>
+                <div class="class-name">Scout</div>
+                <div class="class-stats">
+                    <div>Speed: <div class="stat-bar"><div class="stat-fill" style="width: 100%; background: linear-gradient(90deg, #ffaa00, #ff8800);"></div></div></div>
+                    <div>HP: <div class="stat-bar"><div class="stat-fill" style="width: 60%;"></div></div></div>
+                    <div>Damage: <div class="stat-bar"><div class="stat-fill" style="width: 70%;"></div></div></div>
+                    <div>Fire Rate: <div class="stat-bar"><div class="stat-fill" style="width: 90%; background: linear-gradient(90deg, #ffaa00, #ff8800);"></div></div></div>
+                </div>
+                <p style="color: #ffaa00; margin-top: 15px; font-size: 12px;">Lightning fast movement & rapid fire</p>
+            </div>
+
+            <div class="class-card tank" onclick="selectClass('tank')">
+                <div class="class-icon">🛡️</div>
+                <div class="class-name">Juggernaut</div>
+                <div class="class-stats">
+                    <div>Speed: <div class="stat-bar"><div class="stat-fill" style="width: 50%;"></div></div></div>
+                    <div>HP: <div class="stat-bar"><div class="stat-fill" style="width: 100%; background: linear-gradient(90deg, #4d94ff, #2266dd);"></div></div></div>
+                    <div>Damage: <div class="stat-bar"><div class="stat-fill" style="width: 90%; background: linear-gradient(90deg, #4d94ff, #2266dd);"></div></div></div>
+                    <div>Fire Rate: <div class="stat-bar"><div class="stat-fill" style="width: 60%;"></div></div></div>
+                </div>
+                <p style="color: #4d94ff; margin-top: 15px; font-size: 12px;">Maximum armor & devastating firepower</p>
+            </div>
+
+            <div class="class-card balanced" onclick="selectClass('balanced')">
+                <div class="class-icon">⚔️</div>
+                <div class="class-name">Assault</div>
+                <div class="class-stats">
+                    <div>Speed: <div class="stat-bar"><div class="stat-fill" style="width: 75%;"></div></div></div>
+                    <div>HP: <div class="stat-bar"><div class="stat-fill" style="width: 75%;"></div></div></div>
+                    <div>Damage: <div class="stat-bar"><div class="stat-fill" style="width: 75%;"></div></div></div>
+                    <div>Fire Rate: <div class="stat-bar"><div class="stat-fill" style="width: 75%;"></div></div></div>
+                </div>
+                <p style="color: #00ff88; margin-top: 15px; font-size: 12px;">Well-rounded for any situation</p>
+            </div>
+
+            <div class="class-card sniper" onclick="selectClass('sniper')">
+                <div class="class-icon">🎯</div>
+                <div class="class-name">Marksman</div>
+                <div class="class-stats">
+                    <div>Speed: <div class="stat-bar"><div class="stat-fill" style="width: 70%;"></div></div></div>
+                    <div>HP: <div class="stat-bar"><div class="stat-fill" style="width: 65%;"></div></div></div>
+                    <div>Damage: <div class="stat-bar"><div class="stat-fill" style="width: 100%; background: linear-gradient(90deg, #ff4d4d, #dd2222);"></div></div></div>
+                    <div>Fire Rate: <div class="stat-bar"><div class="stat-fill" style="width: 50%;"></div></div></div>
+                </div>
+                <p style="color: #ff4d4d; margin-top: 15px; font-size: 12px;">Extreme damage with precision shots</p>
+            </div>
+        </div>
+    </div>
+
     <canvas id="gameCanvas"></canvas>
 
     <script>
@@ -238,10 +415,23 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         
-        const imgP1 = new Image(); imgP1.src = 'RedTank.png';
-        const imgP2 = new Image(); imgP2.src = 'BlueTank.png';
+        // Tank images - will be assigned based on class
+        const imgP1 = new Image();
+        const imgP2 = new Image();
+
+        // All tank type images
+        const imgRedTank = new Image(); imgRedTank.src = 'RedTank.png';
+        const imgBlueTank = new Image(); imgBlueTank.src = 'BlueTank.png';
+        const imgSpeedTank = new Image(); imgSpeedTank.src = 'SpeedTank.png';
+        const imgHighHpTank = new Image(); imgHighHpTank.src = 'HighHpAndDamageTank.png';
+
+        // Bullet images
         const imgBullet = new Image(); imgBullet.src = 'Bullet.png';
+        const imgSpeedBullet = new Image(); imgSpeedBullet.src = 'SpeedTankBullet.png';
+        const imgHighHpBullet = new Image(); imgHighHpBullet.src = 'HighHpAndDamageTankBullet.png';
         const imgRocket = new Image(); imgRocket.src = 'Rocket.png';
+
+        // Other images
         const imgObstacle = new Image(); imgObstacle.src = 'Obstacle.png';
         const imgShield = new Image(); imgShield.src = 'Sheild.png';
         const imgHealth = new Image(); imgHealth.src = 'Health.png';
@@ -251,33 +441,144 @@
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioCtx = new AudioContext();
 
-        // Sound generator functions
-        function playBulletSound() {
-            const oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
+        // Background music variables
+        let bgMusicOscillators = [];
+        let bgMusicGain = null;
+        let isMusicPlaying = false;
 
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
+        // Background music - smooth ambient battle theme
+        function startBackgroundMusic() {
+            if(isMusicPlaying) return;
+            isMusicPlaying = true;
 
-            oscillator.frequency.value = 800;
-            oscillator.type = 'square';
+            bgMusicGain = audioCtx.createGain();
+            bgMusicGain.gain.setValueAtTime(0, audioCtx.currentTime);
+            bgMusicGain.gain.linearRampToValueAtTime(0.08, audioCtx.currentTime + 2); // Smooth fade in
+            bgMusicGain.connect(audioCtx.destination);
 
-            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            // Create a lowpass filter to smooth out harsh frequencies
+            const masterFilter = audioCtx.createBiquadFilter();
+            masterFilter.type = 'lowpass';
+            masterFilter.frequency.value = 800;
+            masterFilter.Q.value = 0.5;
+            masterFilter.connect(bgMusicGain);
 
-            oscillator.start(audioCtx.currentTime);
-            oscillator.stop(audioCtx.currentTime + 0.1);
+            // Deep bass drone
+            const bass = audioCtx.createOscillator();
+            bass.type = 'sine';
+            bass.frequency.value = 65; // C2 - deeper, smoother
+            const bassGain = audioCtx.createGain();
+            bassGain.gain.value = 0.4;
+            bass.connect(bassGain);
+            bassGain.connect(masterFilter);
+            bass.start();
+            bgMusicOscillators.push(bass);
+
+            // Mid-range pad with filter
+            const pad = audioCtx.createOscillator();
+            pad.type = 'sine'; // Changed to sine for smoother sound
+            pad.frequency.value = 130; // C3
+            const padGain = audioCtx.createGain();
+            padGain.gain.value = 0.15;
+            const padFilter = audioCtx.createBiquadFilter();
+            padFilter.type = 'lowpass';
+            padFilter.frequency.value = 600;
+            pad.connect(padFilter);
+            padFilter.connect(padGain);
+            padGain.connect(masterFilter);
+            pad.start();
+            bgMusicOscillators.push(pad);
+
+            // Subtle high harmonic
+            const harmonic = audioCtx.createOscillator();
+            harmonic.type = 'sine';
+            harmonic.frequency.value = 195; // G3
+            const harmonicGain = audioCtx.createGain();
+            harmonicGain.gain.value = 0.08;
+            harmonic.connect(harmonicGain);
+            harmonicGain.connect(masterFilter);
+            harmonic.start();
+            bgMusicOscillators.push(harmonic);
         }
 
-        function playRocketSound() {
+        function stopBackgroundMusic() {
+            bgMusicOscillators.forEach(osc => osc.stop());
+            bgMusicOscillators = [];
+            isMusicPlaying = false;
+        }
+
+        function toggleMusic() {
+            if(isMusicPlaying) {
+                stopBackgroundMusic();
+                document.getElementById('musicToggle').innerHTML = '🔇 Music OFF';
+            } else {
+                startBackgroundMusic();
+                document.getElementById('musicToggle').innerHTML = '🔊 Music ON';
+            }
+        }
+
+        // Class-specific fire sounds
+        function playClassFireSound(classType) {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            const filter = audioCtx.createBiquadFilter();
+
+            oscillator.connect(filter);
+            filter.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            filter.type = 'lowpass';
+
+            if(classType === 'speed') {
+                // Scout: High-pitched, rapid, sharp
+                oscillator.frequency.value = 1200;
+                oscillator.type = 'square';
+                filter.frequency.value = 2000;
+                gainNode.gain.setValueAtTime(0.25, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+                oscillator.start(audioCtx.currentTime);
+                oscillator.stop(audioCtx.currentTime + 0.08);
+            } else if(classType === 'tank') {
+                // Juggernaut: Deep, heavy, booming
+                oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.25);
+                oscillator.type = 'sawtooth';
+                filter.frequency.value = 400;
+                gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                oscillator.start(audioCtx.currentTime);
+                oscillator.stop(audioCtx.currentTime + 0.25);
+            } else if(classType === 'sniper') {
+                // Marksman: Sharp crack, precise
+                oscillator.frequency.setValueAtTime(2000, audioCtx.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.15);
+                oscillator.type = 'triangle';
+                filter.frequency.value = 3000;
+                gainNode.gain.setValueAtTime(0.4, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+                oscillator.start(audioCtx.currentTime);
+                oscillator.stop(audioCtx.currentTime + 0.15);
+            } else {
+                // Assault: Standard gunfire
+                oscillator.frequency.value = 800;
+                oscillator.type = 'square';
+                filter.frequency.value = 1500;
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                oscillator.start(audioCtx.currentTime);
+                oscillator.stop(audioCtx.currentTime + 0.1);
+            }
+        }
+
+        function playRocketSound(variation = 0) {
             const oscillator = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
 
             oscillator.connect(gainNode);
             gainNode.connect(audioCtx.destination);
 
-            oscillator.frequency.setValueAtTime(200, audioCtx.currentTime);
-            oscillator.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+            oscillator.frequency.setValueAtTime(200 + (variation * 50), audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(100 + (variation * 25), audioCtx.currentTime + 0.3);
             oscillator.type = 'sawtooth';
 
             gainNode.gain.setValueAtTime(0.4, audioCtx.currentTime);
@@ -287,7 +588,7 @@
             oscillator.stop(audioCtx.currentTime + 0.3);
         }
 
-        function playHitSound() {
+        function playHitSound(variation = 0) {
             const oscillator = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
             const filter = audioCtx.createBiquadFilter();
@@ -296,10 +597,10 @@
             filter.connect(gainNode);
             gainNode.connect(audioCtx.destination);
 
-            oscillator.frequency.value = 150;
+            oscillator.frequency.value = 150 + (variation * 30);
             oscillator.type = 'triangle';
             filter.type = 'lowpass';
-            filter.frequency.value = 300;
+            filter.frequency.value = 300 + (variation * 50);
 
             gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
             gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
@@ -308,7 +609,7 @@
             oscillator.stop(audioCtx.currentTime + 0.2);
         }
 
-        function playExplosionSound() {
+        function playExplosionSound(big = false) {
             const bufferSize = audioCtx.sampleRate * 0.5;
             const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
             const data = buffer.getChannelData(0);
@@ -327,10 +628,10 @@
             gainNode.connect(audioCtx.destination);
 
             filter.type = 'lowpass';
-            filter.frequency.setValueAtTime(1000, audioCtx.currentTime);
-            filter.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.5);
+            filter.frequency.setValueAtTime(big ? 1500 : 1000, audioCtx.currentTime);
+            filter.frequency.exponentialRampToValueAtTime(big ? 80 : 100, audioCtx.currentTime + 0.5);
 
-            gainNode.gain.setValueAtTime(0.6, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(big ? 0.8 : 0.6, audioCtx.currentTime);
             gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
 
             noise.start(audioCtx.currentTime);
@@ -373,19 +674,115 @@
             oscillator.stop(audioCtx.currentTime + 0.15);
         }
 
+        // --- CLASS SYSTEM ---
+        const tankClasses = {
+            speed: {
+                name: 'Scout',
+                maxHP: 80,
+                speed: 10,
+                bulletSpeed: 20,
+                bulletDamage: 10,
+                fireRate: 200, // milliseconds between shots
+                color: '#ffaa00',
+                tankImage: 'speed', // Uses SpeedTank.png
+                bulletImage: 'speed', // Uses SpeedTankBullet.png
+                impactColor: '#ffaa00', // Orange impact
+                impactParticles: 15, // More particles for speed
+                impactSize: 2, // Smaller particles
+                fireSound: 'speed' // High-pitched rapid fire
+            },
+            tank: {
+                name: 'Juggernaut',
+                maxHP: 150,
+                speed: 5,
+                bulletSpeed: 14,
+                bulletDamage: 18,
+                fireRate: 500,
+                color: '#4d94ff',
+                tankImage: 'highhp', // Uses HighHpAndDamageTank.png
+                bulletImage: 'highhp', // Uses HighHpAndDamageTankBullet.png
+                impactColor: '#4d94ff', // Blue impact
+                impactParticles: 25, // Lots of particles for heavy impact
+                impactSize: 5, // Large particles
+                fireSound: 'heavy' // Deep, heavy cannon sound
+            },
+            balanced: {
+                name: 'Assault',
+                maxHP: 100,
+                speed: 7,
+                bulletSpeed: 16,
+                bulletDamage: 12,
+                fireRate: 300,
+                color: '#00ff88',
+                tankImage: 'standard', // Uses RedTank/BlueTank
+                bulletImage: 'standard', // Uses Bullet.png
+                impactColor: '#00ff88', // Green impact
+                impactParticles: 12, // Medium particles
+                impactSize: 3, // Medium size
+                fireSound: 'standard' // Standard gunfire
+            },
+            sniper: {
+                name: 'Marksman',
+                maxHP: 85,
+                speed: 6,
+                bulletSpeed: 24,
+                bulletDamage: 25,
+                fireRate: 600,
+                color: '#ff4d4d',
+                tankImage: 'standard', // Uses RedTank/BlueTank
+                bulletImage: 'standard', // Uses Bullet.png
+                impactColor: '#ff4d4d', // Red impact
+                impactParticles: 8, // Few but large particles
+                impactSize: 6, // Large particles for high damage
+                fireSound: 'sniper' // Sharp, precise shot
+            }
+        };
+
+        let selectedClass = null;
+        let waitingForOpponent = false;
+
+        // Helper function to get tank image based on class and side
+        function getTankImage(playerClass, side) {
+            const classInfo = tankClasses[playerClass];
+            if(classInfo.tankImage === 'speed') {
+                return imgSpeedTank;
+            } else if(classInfo.tankImage === 'highhp') {
+                return imgHighHpTank;
+            } else {
+                // Standard tanks use red/blue based on side
+                return side === 'left' ? imgRedTank : imgBlueTank;
+            }
+        }
+
+        // Helper function to get bullet image based on class
+        function getBulletImage(playerClass, isRocket) {
+            if(isRocket) return imgRocket;
+
+            const classInfo = tankClasses[playerClass];
+            if(classInfo.bulletImage === 'speed') {
+                return imgSpeedBullet;
+            } else if(classInfo.bulletImage === 'highhp') {
+                return imgHighHpBullet;
+            } else {
+                return imgBullet;
+            }
+        }
+
         // --- MAP CONFIG ---
         const WORLD_WIDTH = 2000;
         const WORLD_HEIGHT = 1200;
 
         let mySide, myRoom, gameStarted = false, isGameOver = false;
         let mouseX = 0, mouseY = 0, currentZoom = 1, shake = 0;
-        let p1 = { x: 200, y: 600, angle: 0, hp: 100, shield: 0, bullets: [], rocket: false, triple: false, score: 0, powerupReady: false, powerupActive: false, powerupTimer: 0 };
-        let p2 = { x: 1800, y: 600, angle: Math.PI, hp: 100, shield: 0, bullets: [], rocket: false, triple: false, score: 0, powerupReady: false, powerupActive: false, powerupTimer: 0 };
-        let obstacles = [], particles = [], items = [];
+        let p1 = { x: 200, y: 600, angle: 0, hp: 100, shield: 0, bullets: [], rocket: false, triple: false, score: 0, powerupReady: false, powerupActive: false, powerupTimer: 0, class: 'balanced' };
+        let p2 = { x: 1800, y: 600, angle: Math.PI, hp: 100, shield: 0, bullets: [], rocket: false, triple: false, score: 0, powerupReady: false, powerupActive: false, powerupTimer: 0, class: 'balanced' };
+        let obstacles = [], particles = [], items = [], tankTrails = [];
         const keys = {};
         const POWERUP_SCORE_THRESHOLD = 50; // Points needed to unlock power-up
         const POWERUP_DURATION = 3000; // 3 seconds in milliseconds
         let lastFireTime = 0;
+        let screenFlash = 0; // Screen flash intensity
+        let bulletSoundVariation = 0; // For sound variation
 
         // Particle system for visual effects
         function createExplosion(x, y, color = '#ff6600', count = 20) {
@@ -400,7 +797,8 @@
                     life: 1,
                     decay: 0.02 + Math.random() * 0.02,
                     size: 3 + Math.random() * 4,
-                    color: color
+                    color: color,
+                    type: 'explosion'
                 });
             }
         }
@@ -417,9 +815,196 @@
                     life: 1,
                     decay: 0.03 + Math.random() * 0.03,
                     size: 2 + Math.random() * 3,
-                    color: color
+                    color: color,
+                    type: 'spark'
                 });
             }
+        }
+
+        // Muzzle flash effect (smaller, just for firing)
+        function createMuzzleFlash(x, y, classType) {
+            const classStats = tankClasses[classType] || tankClasses.balanced;
+            const color = classStats.color;
+
+            // Small muzzle flash - just a few particles
+            for(let i = 0; i < 5; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 0.5 + Math.random() * 1.5;
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    life: 1,
+                    decay: 0.08,
+                    size: 2 + Math.random(),
+                    color: color,
+                    type: 'spark'
+                });
+            }
+        }
+
+        // Class-specific impact effect
+        function createClassImpact(x, y, classType) {
+            const classStats = tankClasses[classType] || tankClasses.balanced;
+            const particleCount = classStats.impactParticles;
+            const particleSize = classStats.impactSize;
+            const color = classStats.impactColor;
+
+            for(let i = 0; i < particleCount; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 1 + Math.random() * 4;
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    life: 1,
+                    decay: 0.02 + Math.random() * 0.02,
+                    size: particleSize + Math.random() * 2,
+                    color: color,
+                    type: classType === 'tank' ? 'debris' : 'spark' // Heavy impacts create debris
+                });
+            }
+
+            // Add a shockwave ring for heavy impacts
+            if(classType === 'tank' || classType === 'sniper') {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: 0,
+                    vy: 0,
+                    life: 1,
+                    decay: 0.05,
+                    size: 10,
+                    color: color,
+                    type: 'ring',
+                    radius: 5
+                });
+            }
+        }
+
+        function createSmokeTrail(x, y, vx, vy) {
+            particles.push({
+                x: x,
+                y: y,
+                vx: vx * 0.1 + (Math.random() - 0.5) * 0.5,
+                vy: vy * 0.1 + (Math.random() - 0.5) * 0.5,
+                life: 1,
+                decay: 0.015,
+                size: 4 + Math.random() * 3,
+                color: '#888888',
+                type: 'smoke'
+            });
+        }
+
+        // Tank trail system - creates tread marks and dust
+        function createTankTrail(tank, isMoving) {
+            if(!isMoving) return; // Only create trails when moving
+
+            // Calculate tread positions (left and right side of tank)
+            const treadOffset = 20; // Distance from center to tread
+            const leftTreadX = tank.x + 30 + Math.cos(tank.angle - Math.PI/2) * treadOffset;
+            const leftTreadY = tank.y + 30 + Math.sin(tank.angle - Math.PI/2) * treadOffset;
+            const rightTreadX = tank.x + 30 + Math.cos(tank.angle + Math.PI/2) * treadOffset;
+            const rightTreadY = tank.y + 30 + Math.sin(tank.angle + Math.PI/2) * treadOffset;
+
+            // Create tread marks (small rectangles)
+            tankTrails.push({
+                x: leftTreadX,
+                y: leftTreadY,
+                angle: tank.angle,
+                life: 1,
+                decay: 0.008,
+                width: 8,
+                height: 4,
+                type: 'tread'
+            });
+
+            tankTrails.push({
+                x: rightTreadX,
+                y: rightTreadY,
+                angle: tank.angle,
+                life: 1,
+                decay: 0.008,
+                width: 8,
+                height: 4,
+                type: 'tread'
+            });
+
+            // Occasionally create dust clouds
+            if(Math.random() > 0.7) {
+                tankTrails.push({
+                    x: tank.x + 30 + (Math.random() - 0.5) * 30,
+                    y: tank.y + 30 + (Math.random() - 0.5) * 30,
+                    life: 1,
+                    decay: 0.015,
+                    size: 8 + Math.random() * 6,
+                    type: 'dust'
+                });
+            }
+        }
+
+        function updateTankTrails() {
+            for(let i = tankTrails.length - 1; i >= 0; i--) {
+                const trail = tankTrails[i];
+                trail.life -= trail.decay;
+
+                // Dust clouds expand as they fade
+                if(trail.type === 'dust') {
+                    trail.size += 0.2;
+                }
+
+                if(trail.life <= 0) {
+                    tankTrails.splice(i, 1);
+                }
+            }
+        }
+
+        function drawTankTrails() {
+            tankTrails.forEach(trail => {
+                ctx.save();
+
+                if(trail.type === 'tread') {
+                    // Draw tread marks as small rectangles
+                    ctx.globalAlpha = trail.life * 0.3;
+                    ctx.fillStyle = '#4a4a4a';
+                    ctx.translate(trail.x, trail.y);
+                    ctx.rotate(trail.angle);
+                    ctx.fillRect(-trail.width/2, -trail.height/2, trail.width, trail.height);
+                } else if(trail.type === 'dust') {
+                    // Draw dust clouds as circles
+                    ctx.globalAlpha = trail.life * 0.25;
+                    ctx.fillStyle = '#8a8a8a';
+                    ctx.beginPath();
+                    ctx.arc(trail.x, trail.y, trail.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                ctx.restore();
+            });
+        }
+
+        function createDebris(x, y, count = 5) {
+            for(let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 1 + Math.random() * 2;
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    life: 1,
+                    decay: 0.01,
+                    size: 2 + Math.random() * 2,
+                    color: '#666666',
+                    type: 'debris'
+                });
+            }
+        }
+
+        function triggerScreenFlash(intensity = 0.5) {
+            screenFlash = Math.min(1, intensity);
         }
 
         function updateParticles() {
@@ -427,8 +1012,21 @@
                 p.x += p.vx;
                 p.y += p.vy;
                 p.life -= p.decay;
-                p.vx *= 0.98;
-                p.vy *= 0.98;
+
+                // Different physics for different particle types
+                if(p.type === 'smoke') {
+                    p.vx *= 0.95;
+                    p.vy *= 0.95;
+                    p.size += 0.1; // Smoke expands
+                } else if(p.type === 'debris') {
+                    p.vx *= 0.96;
+                    p.vy *= 0.96;
+                } else if(p.type === 'ring') {
+                    p.radius += 2; // Ring expands outward
+                } else {
+                    p.vx *= 0.98;
+                    p.vy *= 0.98;
+                }
 
                 if(p.life <= 0) particles.splice(i, 1);
             });
@@ -437,10 +1035,32 @@
         function drawParticles() {
             particles.forEach(p => {
                 ctx.globalAlpha = p.life;
-                ctx.fillStyle = p.color;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
-                ctx.fill();
+
+                if(p.type === 'smoke') {
+                    // Smoke is more transparent and blurred
+                    ctx.globalAlpha = p.life * 0.5;
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if(p.type === 'debris') {
+                    // Debris is rectangular
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(p.x - p.size/2, p.y - p.size/2, p.size, p.size);
+                } else if(p.type === 'ring') {
+                    // Shockwave ring
+                    ctx.strokeStyle = p.color;
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.stroke();
+                } else {
+                    // Regular particles
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+                    ctx.fill();
+                }
             });
             ctx.globalAlpha = 1;
         }
@@ -463,55 +1083,120 @@
                 if(audioCtx.state === 'suspended') {
                     audioCtx.resume();
                 }
-                socket.emit('joinRoom', r);
+                myRoom = r;
+                // Show class selection instead of joining immediately
+                document.getElementById('menu').style.display = 'none';
+                document.getElementById('classSelection').style.display = 'flex';
             }
         }
 
+        function selectClass(classType) {
+            selectedClass = classType;
+            document.getElementById('classSelection').style.display = 'none';
+
+            // Now join the room with selected class
+            socket.emit('joinRoom', { room: myRoom, class: classType });
+
+            // Show waiting message
+            waitingForOpponent = true;
+        }
+
         socket.on('init', data => {
-            mySide = data.side; myRoom = data.roomName; obstacles = data.map;
+            mySide = data.side;
+            myRoom = data.roomName;
+            obstacles = data.map;
+
+            // Initialize player with class stats
+            let me = mySide === 'left' ? p1 : p2;
+            me.class = selectedClass;
+            const classStats = tankClasses[selectedClass];
+            me.hp = classStats.maxHP;
+            me.maxHP = classStats.maxHP;
+
+            // Set tank image based on class and side
+            if(mySide === 'left') {
+                imgP1.src = getTankImage(selectedClass, 'left').src;
+            } else {
+                imgP2.src = getTankImage(selectedClass, 'right').src;
+            }
+
             document.getElementById('menu').innerHTML = "<h2>Waiting for Player 2...</h2>";
+            document.getElementById('menu').style.display = 'block';
         });
 
-        socket.on('startGame', () => {
+        socket.on('startGame', (data) => {
             document.getElementById('menu').style.display = 'none';
             document.getElementById('ui').style.display = 'flex';
+            document.getElementById('musicToggle').style.display = 'block';
             canvas.style.display = 'block';
             canvas.width = window.innerWidth; canvas.height = window.innerHeight;
             gameStarted = true;
+
+            // Apply opponent's class
+            if(data.opponentClass) {
+                let opp = mySide === 'left' ? p2 : p1;
+                opp.class = data.opponentClass;
+                const oppStats = tankClasses[data.opponentClass];
+                opp.hp = oppStats.maxHP;
+                opp.maxHP = oppStats.maxHP;
+
+                // Set opponent's tank image
+                if(mySide === 'left') {
+                    imgP2.src = getTankImage(data.opponentClass, 'right').src;
+                } else {
+                    imgP1.src = getTankImage(data.opponentClass, 'left').src;
+                }
+            }
+
+            // Start background music
+            startBackgroundMusic();
+
             requestAnimationFrame(gameLoop);
         });
 
         function fire() {
             let me = mySide === 'left' ? p1 : p2;
+            const classStats = tankClasses[me.class];
 
-            // Fire rate control - faster during power-up
+            // Fire rate control - class-based fire rate, faster during power-up
             const now = Date.now();
-            const fireDelay = me.powerupActive ? 100 : 300; // 100ms vs 300ms between shots
+            const fireDelay = me.powerupActive ? 100 : classStats.fireRate;
             if (now - lastFireTime < fireDelay) return;
             lastFireTime = now;
 
             const bX = me.x + 30; const bY = me.y + 30;
-            const speed = me.powerupActive ? 24 : 16; // Faster bullets during power-up
+            const speed = me.powerupActive ? 24 : classStats.bulletSpeed;
             let newBullets = [];
-
-            // Muzzle flash effect
-            const flashX = bX + Math.cos(me.angle) * 35;
-            const flashY = bY + Math.sin(me.angle) * 35;
-            createHitEffect(flashX, flashY, '#ffff00');
 
             if(me.triple) {
                 for(let a of [-0.2, 0, 0.2]) {
-                    newBullets.push({ x: bX, y: bY, dx: Math.cos(me.angle+a)*speed, dy: Math.sin(me.angle+a)*speed, angle: me.angle+a, isRocket: false });
+                    newBullets.push({
+                        x: bX, y: bY,
+                        dx: Math.cos(me.angle+a)*speed,
+                        dy: Math.sin(me.angle+a)*speed,
+                        angle: me.angle+a,
+                        isRocket: false,
+                        damage: classStats.bulletDamage,
+                        ownerClass: me.class
+                    });
                 }
                 me.triple = false;
-                playBulletSound();
+                playClassFireSound(me.class);
             } else {
-                newBullets.push({ x: bX, y: bY, dx: Math.cos(me.angle)*speed, dy: Math.sin(me.angle)*speed, angle: me.angle, isRocket: me.rocket });
+                newBullets.push({
+                    x: bX, y: bY,
+                    dx: Math.cos(me.angle)*speed,
+                    dy: Math.sin(me.angle)*speed,
+                    angle: me.angle,
+                    isRocket: me.rocket,
+                    damage: me.rocket ? 35 : classStats.bulletDamage,
+                    ownerClass: me.class
+                });
                 // Play appropriate sound
                 if(me.rocket) {
-                    playRocketSound();
+                    playRocketSound(0);
                 } else {
-                    playBulletSound();
+                    playClassFireSound(me.class);
                 }
                 me.rocket = false;
             }
@@ -556,16 +1241,24 @@
                 document.getElementById('powerupIndicator').style.display = 'block';
             }
 
-            // 1. Movement with Map Limits - faster during power-up
-            const moveSpeed = me.powerupActive ? 12 : 7;
-            if(keys['KeyW']) me.y -= moveSpeed;
-            if(keys['KeyS']) me.y += moveSpeed;
-            if(keys['KeyA']) me.x -= moveSpeed;
-            if(keys['KeyD']) me.x += moveSpeed;
+            // 1. Movement with Map Limits - class-based speed, faster during power-up
+            const classStats = tankClasses[me.class];
+            const moveSpeed = me.powerupActive ? (classStats.speed * 1.5) : classStats.speed;
+            let isMoving = false;
+
+            if(keys['KeyW']) { me.y -= moveSpeed; isMoving = true; }
+            if(keys['KeyS']) { me.y += moveSpeed; isMoving = true; }
+            if(keys['KeyA']) { me.x -= moveSpeed; isMoving = true; }
+            if(keys['KeyD']) { me.x += moveSpeed; isMoving = true; }
 
             // Constrain player to WORLD_WIDTH and WORLD_HEIGHT
             me.x = Math.max(0, Math.min(me.x, WORLD_WIDTH - 60));
             me.y = Math.max(0, Math.min(me.y, WORLD_HEIGHT - 60));
+
+            // Create tank trails when moving (throttled to every 3rd frame)
+            if(isMoving && Math.random() > 0.65) {
+                createTankTrail(me, isMoving);
+            }
 
             // 2. Rotation & Aiming
             const worldMouseX = (mouseX - canvas.width/2) / currentZoom + (p1.x + p2.x + 60)/2;
@@ -592,6 +1285,10 @@
             for(let y=0; y<=WORLD_HEIGHT; y+=100) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(WORLD_WIDTH, y); ctx.stroke(); }
             ctx.lineWidth = 5; ctx.strokeStyle = "#2ecc71"; ctx.strokeRect(0,0, WORLD_WIDTH, WORLD_HEIGHT);
 
+            // Update and draw tank trails (before other elements so they appear underneath)
+            updateTankTrails();
+            drawTankTrails();
+
             // 5. Assets & Collisions
             obstacles.forEach(o => { if(o.hp > 0) ctx.drawImage(imgObstacle, o.x, o.y, 70, 70); });
 
@@ -616,8 +1313,17 @@
             [p1, p2].forEach(p => {
                 p.bullets.forEach((b, bi) => {
                     b.x += b.dx; b.y += b.dy;
+
+                    // Create smoke trail for rockets
+                    if(b.isRocket && Math.random() > 0.5) {
+                        createSmokeTrail(b.x, b.y, b.dx, b.dy);
+                    }
+
+                    // Get the correct bullet image based on owner's class
+                    const bulletImg = getBulletImage(b.ownerClass || 'balanced', b.isRocket);
+
                     ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(b.angle);
-                    ctx.drawImage(b.isRocket ? imgRocket : imgBullet, -15, -10, 30, 20); ctx.restore();
+                    ctx.drawImage(bulletImg, -15, -10, 30, 20); ctx.restore();
 
                     let hit = false;
                     obstacles.forEach(o => {
@@ -625,13 +1331,14 @@
                             o.hp -= 1;
                             hit = true;
 
-                            // Visual and audio feedback
+                            // Visual and audio feedback - class-specific impact
                             if(b.isRocket) {
                                 createExplosion(b.x, b.y, '#ff6600', 15);
                                 playExplosionSound();
+                                triggerScreenFlash(0.3);
                             } else {
-                                createHitEffect(b.x, b.y, '#ffff00');
-                                playHitSound();
+                                createClassImpact(b.x, b.y, b.ownerClass || 'balanced');
+                                playHitSound(Math.floor(Math.random() * 3));
                             }
 
                             // Award points for destroying obstacle
@@ -642,30 +1349,44 @@
                             // If obstacle destroyed, create bigger explosion
                             if(o.hp <= 0) {
                                 createExplosion(o.x + 35, o.y + 35, '#ff4400', 25);
+                                createDebris(o.x + 35, o.y + 35, 8);
+                                playExplosionSound(true);
+                                triggerScreenFlash(0.4);
                             }
                         }
                     });
 
                     let target = (p === p1) ? p2 : p1;
                     if(!hit && b.x > target.x && b.x < target.x + 60 && b.y > target.y && b.y < target.y + 60) {
-                        // Visual and audio feedback for player hit
+                        // Visual and audio feedback for player hit - class-specific impact
                         if(b.isRocket) {
                             createExplosion(b.x, b.y, '#ff0000', 20);
-                            playExplosionSound();
+                            playExplosionSound(true);
+                            triggerScreenFlash(0.5);
                         } else {
-                            createHitEffect(b.x, b.y, '#ff0000');
-                            playHitSound();
+                            createClassImpact(b.x, b.y, b.ownerClass || 'balanced');
+                            playHitSound(Math.floor(Math.random() * 3));
+                            triggerScreenFlash(0.2);
                         }
 
                         if(target === me) {
-                            let dmg = b.isRocket ? 35 : 12;
+                            let dmg = b.damage || (b.isRocket ? 35 : 12); // Use bullet's damage or default
                             if(me.shield > 0) me.shield -= dmg; else me.hp -= dmg;
-                            shake = 10;
+                            shake = b.isRocket ? 20 : 10;
 
                             // Death explosion
                             if(me.hp <= 0) {
                                 createExplosion(me.x + 30, me.y + 30, '#ff0000', 40);
-                                playExplosionSound();
+                                createDebris(me.x + 30, me.y + 30, 15);
+                                playExplosionSound(true);
+                                triggerScreenFlash(1.0);
+                                stopBackgroundMusic();
+
+                                // Show defeat screen immediately for the loser
+                                isGameOver = true;
+                                document.getElementById('gameOverScreen').style.display = 'flex';
+                                document.getElementById('statusText').innerText = 'DEFEAT';
+
                                 socket.emit('sync', { room: myRoom, action: 'death', winner: (mySide === 'left' ? 'right' : 'left') });
                             }
                         } else {
@@ -698,8 +1419,11 @@
 
                 ctx.save(); ctx.translate(p.x + 30, p.y + 30); ctx.rotate(p.angle + Math.PI/2);
                 ctx.drawImage(img, -30, -30, 60, 60); ctx.restore();
+
+                // HP bar based on class max HP
+                const maxHP = p.maxHP || 100;
                 ctx.fillStyle = "red"; ctx.fillRect(p.x, p.y-15, 60, 5);
-                ctx.fillStyle = "green"; ctx.fillRect(p.x, p.y-15, (p.hp/100)*60, 5);
+                ctx.fillStyle = "green"; ctx.fillRect(p.x, p.y-15, (p.hp/maxHP)*60, 5);
                 if(p.shield > 0) { ctx.fillStyle = "#00bfff"; ctx.fillRect(p.x, p.y-22, (p.shield/100)*60, 4); }
             };
             drawT(p1, imgP1); drawT(p2, imgP2);
@@ -709,6 +1433,15 @@
             drawParticles();
 
             ctx.restore();
+
+            // Screen flash effect
+            if(screenFlash > 0) {
+                ctx.fillStyle = `rgba(255, 255, 255, ${screenFlash * 0.6})`;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                screenFlash -= 0.05;
+                if(screenFlash < 0) screenFlash = 0;
+            }
+
             document.getElementById('p1HP').innerText = Math.ceil(p1.hp);
             document.getElementById('p2HP').innerText = Math.ceil(p2.hp);
             document.getElementById('p1Score').innerText = p1.score;
@@ -736,6 +1469,14 @@
 
         socket.on('spawnItem', item => items.push(item));
         socket.on('removeItem', id => items = items.filter(i => i.id !== id));
+
+        // Handle opponent leaving
+        socket.on('opponentLeft', () => {
+            isGameOver = true;
+            stopBackgroundMusic();
+            document.getElementById('gameOverScreen').style.display = 'flex';
+            document.getElementById('statusText').innerText = 'OPPONENT LEFT\nYOU WIN!';
+        });
     </script>
 </body>
 </html>

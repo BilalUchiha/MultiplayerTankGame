@@ -26,16 +26,31 @@ function generateMap() {
 }
 
 io.on('connection', (socket) => {
-    socket.on('joinRoom', (roomName) => {
+    let currentRoom = null;
+
+    socket.on('joinRoom', (data) => {
+        const roomName = typeof data === 'string' ? data : data.room;
+        const playerClass = typeof data === 'string' ? 'balanced' : data.class;
+
+        currentRoom = roomName;
+
         if (!rooms[roomName]) {
-            rooms[roomName] = { 
-                players: [], 
+            rooms[roomName] = {
+                players: [],
+                playerClasses: {},
                 map: generateMap(),
-                activeItems: {} // Track items by ID
+                activeItems: {}, // Track items by ID
+                itemSpawner: null // Store interval reference
             };
 
             // ITEM SPAWNER: Runs every 10 seconds
-            setInterval(() => {
+            rooms[roomName].itemSpawner = setInterval(() => {
+                // Check if room still exists and has players
+                if (!rooms[roomName] || rooms[roomName].players.length === 0) {
+                    clearInterval(rooms[roomName].itemSpawner);
+                    return;
+                }
+
                 const types = ['health', 'rocket', 'triple', 'shield'];
                 const id = Date.now();
                 const item = {
@@ -54,7 +69,7 @@ io.on('connection', (socket) => {
                         delete rooms[roomName].activeItems[id];
                         io.to(roomName).emit('removeItem', id);
                     }
-                }, 4000); 
+                }, 4000);
 
             }, 10000);
         }
@@ -62,9 +77,23 @@ io.on('connection', (socket) => {
         if (rooms[roomName].players.length < 2) {
             socket.join(roomName);
             rooms[roomName].players.push(socket.id);
+            rooms[roomName].playerClasses[socket.id] = playerClass;
+
             const side = rooms[roomName].players.length === 1 ? 'left' : 'right';
             socket.emit('init', { side, roomName, map: rooms[roomName].map });
-            if (rooms[roomName].players.length === 2) io.to(roomName).emit('startGame');
+
+            if (rooms[roomName].players.length === 2) {
+                // Send both players' classes when starting game
+                const player1Id = rooms[roomName].players[0];
+                const player2Id = rooms[roomName].players[1];
+
+                io.to(player1Id).emit('startGame', {
+                    opponentClass: rooms[roomName].playerClasses[player2Id]
+                });
+                io.to(player2Id).emit('startGame', {
+                    opponentClass: rooms[roomName].playerClasses[player1Id]
+                });
+            }
         }
     });
 
@@ -73,6 +102,28 @@ io.on('connection', (socket) => {
             delete rooms[data.room].activeItems[data.id];
         }
         socket.to(data.room).emit('opponentSync', data);
+    });
+
+    // Handle player disconnect
+    socket.on('disconnect', () => {
+        if (currentRoom && rooms[currentRoom]) {
+            // Remove player from room
+            rooms[currentRoom].players = rooms[currentRoom].players.filter(id => id !== socket.id);
+
+            // If room is empty, clean it up
+            if (rooms[currentRoom].players.length === 0) {
+                // Clear the item spawner interval
+                if (rooms[currentRoom].itemSpawner) {
+                    clearInterval(rooms[currentRoom].itemSpawner);
+                }
+                // Delete the room
+                delete rooms[currentRoom];
+                console.log(`Room ${currentRoom} deleted - no players remaining`);
+            } else {
+                // Notify remaining player that opponent left
+                io.to(currentRoom).emit('opponentLeft');
+            }
+        }
     });
 });
 
